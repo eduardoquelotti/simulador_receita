@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+import plotly.graph_objs as go
 
 # Função para formatar valores monetários
 def moeda_format(val):
@@ -66,30 +65,52 @@ with col2:
     st.markdown("#### Tabela de Receitas")
     st.dataframe(df_formatado, hide_index=True)
 
-# Gráfico de combinação com a receita diluída do mês corrente
-fig, ax = plt.subplots(figsize=(8, 4))  # Tamanho ajustado
+# Gráfico interativo usando Plotly
+fig = go.Figure()
 
-# Barras da receita
-ax.bar(df['Mês'], df['Receita Vendas Integrais (R$)'], color='blue', label='Receita Vendas Integrais', width=0.4)
-ax.bar(df['Mês'], df['Receita Vendas Diluídas Corrente (R$)'], bottom=df['Receita Vendas Integrais (R$)'], color='lightblue', label='Receita Diluída do Mês Corrente', width=0.4)
-ax.bar(df['Mês'], df['Receita Vendas Diluídas Meses Anteriores (R$)'], bottom=df['Receita Vendas Integrais (R$)'] + df['Receita Vendas Diluídas Corrente (R$)'], color='gray', label='Receita Diluída de Meses Anteriores', width=0.4)
+# Adicionando as barras de Receita Vendas Integrais
+fig.add_trace(go.Bar(
+    x=df['Mês'], 
+    y=df['Receita Vendas Integrais (R$)'], 
+    name='Receita Vendas Integrais',
+    marker_color='blue'
+))
 
-# Linha da receita total
-ax.plot(df['Mês'], df['Receita Total (R$)'], color='green', marker='o', label='Receita Total')
+# Adicionando as barras de Receita Vendas Diluídas Corrente
+fig.add_trace(go.Bar(
+    x=df['Mês'], 
+    y=df['Receita Vendas Diluídas Corrente (R$)'], 
+    name='Receita Diluída do Mês Corrente',
+    marker_color='lightblue'
+))
 
-# Formatação do eixo Y para valores financeiros
-formatter = FuncFormatter(lambda x, _: f'R$ {x:,.0f}'.replace(",", "X").replace(".", ",").replace("X", "."))
-ax.yaxis.set_major_formatter(formatter)
+# Adicionando as barras de Receita Vendas Diluídas Meses Anteriores
+fig.add_trace(go.Bar(
+    x=df['Mês'], 
+    y=df['Receita Vendas Diluídas Meses Anteriores (R$)'], 
+    name='Receita Diluída de Meses Anteriores',
+    marker_color='gray'
+))
 
-# Rótulos e legenda
-ax.set_xlabel("Meses")
-ax.set_ylabel("Receita (R$)")
-ax.set_title("Projeção de Receita Mensal")
+# Adicionando a linha da Receita Total
+fig.add_trace(go.Scatter(
+    x=df['Mês'], 
+    y=df['Receita Total (R$)'], 
+    mode='lines+markers',
+    name='Receita Total',
+    line=dict(color='green')
+))
 
-# Mover a legenda para fora do gráfico
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))  # Posiciona à direita
+# Customizando o layout do gráfico
+fig.update_layout(
+    title="Projeção de Receita Mensal",
+    xaxis_title="Meses",
+    yaxis_title="Receita (R$)",
+    barmode='stack',
+    hovermode="x",
+    legend=dict(x=1.05, y=1),
+    margin=dict(l=0, r=0, t=50, b=0)
+)
 
-# Ajustar layout do gráfico para se adequar ao espaço da legenda
-plt.tight_layout()
-
-st.pyplot(fig)
+# Exibindo o gráfico no Streamlit
+st.plotly_chart(fig, use_container_width=True)
