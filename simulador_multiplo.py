@@ -448,5 +448,3 @@ df_receita_transposta_formatado = df_receita_transposta.applymap(moeda_format)
 # Exibir a tabela de receita transposta
 st.markdown("#### Receita por Tipo de Reconhecimento")
 st.dataframe(df_receita_transposta_formatado)
-
-t
